@@ -1,27 +1,43 @@
 // src/pages/Home.jsx
 import React, { useState } from 'react';
 import { Container, Grid, Typography, Button } from '@mui/material';
-import { useAppKit } from '@reown/appkit/react'; // Updated hook name
+import { useConnect, useAccount } from 'wagmi';
 import Navbar from '../components/Navbar';
 
 const Home = () => {
-  const { connect, account } = useAppKit(); // Use useAppKit instead of useReown
-  const [connectedAddress, setConnectedAddress] = useState(null);
+  const { connectAsync, connectors } = useConnect();
+  const { address } = useAccount();
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const handleConnect = async () => {
+    setIsConnecting(true);
     try {
-      const wallet = await connect(); // Trigger wallet connection
-      if (wallet) {
-        setConnectedAddress(wallet.address);
+      console.log('Available connectors:', connectors);
+      // Prefer MetaMask; if not available, try WalletConnect.
+      let connector = connectors.find((conn) => conn.name === 'MetaMask');
+      if (!connector) {
+        connector = connectors.find((conn) => conn.id === 'walletConnect');
       }
+      if (!connector) {
+        console.error('No connector available');
+        return;
+      }
+      const wallet = await connectAsync({ connector });
+      console.log('Connected wallet:', wallet);
     } catch (error) {
       console.error('Failed to connect wallet:', error);
+    } finally {
+      setIsConnecting(false);
     }
   };
 
   return (
     <>
-      <Navbar onConnect={handleConnect} connectedAddress={connectedAddress || account?.address} />
+      <Navbar 
+        onConnect={handleConnect} 
+        connectedAddress={address} 
+        isConnecting={isConnecting}
+      />
       <Container sx={{ mt: 4 }}>
         <Grid container spacing={4} alignItems="center">
           <Grid item xs={12} md={6}>

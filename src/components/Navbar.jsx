@@ -1,3 +1,4 @@
+// src/components/Navbar.jsx
 import React, { useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -5,18 +6,18 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
-const Navbar = ({ onConnect, connectedAddress }) => {
-  const [isConnecting, setIsConnecting] = useState(false);
+const Navbar = ({ onConnect, connectedAddress, isConnecting }) => {
+  const [internalConnecting, setInternalConnecting] = useState(false);
 
   const handleConnectClick = async () => {
-    if (!onConnect || isConnecting) return; // Prevent multiple clicks
-    setIsConnecting(true);
+    if (!onConnect || internalConnecting) return;
+    setInternalConnecting(true);
     try {
       await onConnect();
     } catch (error) {
       console.error('Connection failed:', error);
     } finally {
-      setIsConnecting(false);
+      setInternalConnecting(false);
     }
   };
 
@@ -38,9 +39,9 @@ const Navbar = ({ onConnect, connectedAddress }) => {
             variant="contained" 
             color="secondary" 
             onClick={handleConnectClick} 
-            disabled={isConnecting}
+            disabled={isConnecting || internalConnecting}
           >
-            {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+            {isConnecting || internalConnecting ? 'Connecting...' : 'Connect Wallet'}
           </Button>
         )}
       </Toolbar>
